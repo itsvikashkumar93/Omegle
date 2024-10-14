@@ -122,9 +122,13 @@
         </div>
         <main class="flex-1 p-4 overflow-y-auto relative" id="message-container">
             <div
-                class="text-zinc-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2/3 text-center nobody">
-                bhagwaan kasam koi nahi hai yaha, ruko shaayad koi
-                aajaye.</div>
+                class="text-zinc-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2/3 text-center nobody">
+                You're not connected to anyone yet. Please wait—someone will join you soon!
+            </div>
+            <div
+                class="text-green-500 absolute hidden top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2/3 text-center somebody">
+                Someone has joined! You can now start a new conversation.
+            </div>
         </main>
         <form id="chatform" class="bg-white p-4 flex">
             <input type="hidden" id="userid" value="">
@@ -154,13 +158,32 @@
             socket.emit('joinroom');
 
             socket.on("joined", (roomname) => {
-                // console.log("joined the room");
                 room = roomname;
                 document.querySelector(".nobody").classList.add("hidden");
+                setTimeout(() => {
+                    document.querySelector(".somebody").classList.remove("hidden");
+                }, 1000);
+
+                setTimeout(() => {
+                    document.querySelector(".somebody").classList.add("hidden");
+                }, 5000);
+
             })
 
             socket.on("message", (msg) => {
                 receiveMessage(msg);
+            })
+
+            socket.on("typing", () => {
+                // console.log("Typing...");
+                document.querySelector(".typing").classList.remove("hidden");
+                setTimeout(() => {
+                    document.querySelector(".typing").classList.add("hidden");
+                }, 2000);
+            })
+
+            chatform.addEventListener('input', (event) => {
+                socket.emit("typing", { room })
             })
 
             chatform.addEventListener('submit', (event) => {
@@ -278,7 +301,7 @@
 
                 peerConnection.onicecandidate = (event) => {
                     if (event.candidate) {
-                        console.log("Sending Ice Candidates: ", event.candidate);
+                        // console.log("Sending Ice Candidates: ", event.candidate);
 
                         socket.emit("signalingMessage", {
                             room,
@@ -328,7 +351,7 @@
                     await peerConnection.setRemoteDescription(offer);
                     const answer = await peerConnection.createAnswer();
                     await peerConnection.setLocalDescription(answer);
-                    console.log('Sending offer:', offer);
+                    // console.log('Sending offer:', offer);
 
                     socket.emit("signalingMessage", {
                         room,
@@ -347,7 +370,7 @@
             const handleAnswer = async (answer) => {
                 try {
                     await peerConnection.setRemoteDescription(answer);
-                    console.log('Sending answer:', answer);
+                    // console.log('Sending answer:', answer);
                 } catch (error) {
                     console.log("failed to handle answer " + error);
                 }

@@ -26,6 +26,10 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("typing", ({ room }) => {
+    socket.broadcast.to(room).emit("typing");
+  });
+
   socket.on("message", (data) => {
     // console.log(data);
     socket.broadcast.to(data.room).emit("message", data.message);
